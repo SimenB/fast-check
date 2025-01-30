@@ -1,3 +1,4 @@
+import { describe, it, expect, vi } from 'vitest';
 import * as fc from 'fast-check';
 import { base64 } from '../../../src/arbitrary/base64';
 
@@ -11,15 +12,11 @@ import {
   assertShrinkProducesStrictlySmallerValue,
   assertProduceSameValueGivenSameSeed,
 } from './__test-helpers__/ArbitraryAssertions';
-
-function beforeEachHook() {
-  jest.resetModules();
-  jest.restoreAllMocks();
-  fc.configureGlobal({ beforeEach: beforeEachHook });
-}
-beforeEach(beforeEachHook);
+import { declareCleaningHooksForSpies } from './__test-helpers__/SpyCleaner';
 
 describe('base64', () => {
+  declareCleaningHooksForSpies();
+
   it('should be able to unmap any mapped value', () => {
     // Arrange
     const { min, max, mapToCode, unmapFromCode } = extractArgumentsForBuildCharacter(base64);
@@ -95,7 +92,7 @@ describe('base64 (integration)', () => {
 
 function extractArgumentsForBuildCharacter(build: () => void) {
   const { instance } = fakeArbitrary();
-  const buildCharacterArbitrary = jest.spyOn(CharacterArbitraryBuilderMock, 'buildCharacterArbitrary');
+  const buildCharacterArbitrary = vi.spyOn(CharacterArbitraryBuilderMock, 'buildCharacterArbitrary');
   buildCharacterArbitrary.mockImplementation(() => instance);
 
   build();

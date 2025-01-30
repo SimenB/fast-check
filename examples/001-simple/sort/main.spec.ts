@@ -1,5 +1,6 @@
+import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
-import * as _ from 'lodash';
+import _ from 'lodash';
 import { sort } from './src/sort';
 
 describe('sort', () => {

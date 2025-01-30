@@ -17,6 +17,7 @@ export class Random {
   private static DBL_FACTOR: number = Math.pow(2, 27);
   private static DBL_DIVISOR: number = Math.pow(2, -53);
 
+  /** @internal */
   private internalRng: RandomGenerator;
 
   /**
@@ -97,5 +98,15 @@ export class Random {
     const a = this.next(26);
     const b = this.next(27);
     return (a * Random.DBL_FACTOR + b) * Random.DBL_DIVISOR;
+  }
+
+  /**
+   * Extract the internal state of the internal RandomGenerator backing the current instance of Random
+   */
+  getState(): readonly number[] | undefined {
+    if ('getState' in this.internalRng && typeof this.internalRng.getState === 'function') {
+      return this.internalRng.getState();
+    }
+    return undefined;
   }
 }

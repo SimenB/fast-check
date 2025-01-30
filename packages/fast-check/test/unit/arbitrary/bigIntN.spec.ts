@@ -1,7 +1,9 @@
+import { describe, it, expect, vi } from 'vitest';
 import * as fc from 'fast-check';
 import { bigIntN } from '../../../src/arbitrary/bigIntN';
 
 import { fakeArbitrary } from './__test-helpers__/ArbitraryHelpers';
+import { declareCleaningHooksForSpies } from './__test-helpers__/SpyCleaner';
 
 import * as BigIntArbitraryMock from '../../../src/arbitrary/_internals/BigIntArbitrary';
 
@@ -10,27 +12,15 @@ function fakeBigIntArbitrary() {
   return instance;
 }
 
-function beforeEachHook() {
-  jest.resetModules();
-  jest.restoreAllMocks();
-  fc.configureGlobal({ beforeEach: beforeEachHook });
-}
-beforeEach(beforeEachHook);
-
 describe('bigIntN', () => {
-  if (typeof BigInt === 'undefined') {
-    it('no test', () => {
-      expect(true).toBe(true);
-    });
-    return;
-  }
+  declareCleaningHooksForSpies();
 
   it('should instantiate BigIntArbitrary(-2^(n-1), 2^(n-1) -1) for bigIntN(n)', () =>
     fc.assert(
       fc.property(fc.integer({ min: 1, max: 1000 }), (n) => {
         // Arrange
         const instance = fakeBigIntArbitrary();
-        const BigIntArbitrary = jest.spyOn(BigIntArbitraryMock, 'BigIntArbitrary');
+        const BigIntArbitrary = vi.spyOn(BigIntArbitraryMock, 'BigIntArbitrary');
         BigIntArbitrary.mockImplementation(() => instance);
 
         // Act

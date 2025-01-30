@@ -1,7 +1,5 @@
 // @ts-check
-// eslint-disable-next-line @typescript-eslint/no-var-requires, no-undef
 var assert = require('assert');
-// eslint-disable-next-line @typescript-eslint/no-var-requires, no-undef
 var fc = require('fast-check');
 
 function testArbitrary(arb) {
@@ -45,7 +43,11 @@ function testArbitrary(arb) {
   fc.statistics(
     arb,
     function (data) {
-      return String(String(data).length);
+      const dataWithPrototype =
+        data !== null && typeof data === 'object' && Object.getPrototypeOf(data) === null
+          ? Object.assign({}, data) // String(<no-prototype>) throws, we just put an Object prototype to not throw
+          : data;
+      return String(String(dataWithPrototype).length);
     },
     {
       logger: function (l) {
@@ -105,9 +107,11 @@ testArbitrary(
 testArbitrary(
   (function () {
     const tree = fc.memo(function (n) {
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
       return fc.oneof(node(n), leaf());
     });
     const node = fc.memo(function (n) {
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
       if (n <= 1) return fc.record({ left: leaf(), right: leaf() });
       return fc.record({ left: tree(), right: tree() });
     });

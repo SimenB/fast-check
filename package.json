@@ -2,7 +2,8 @@
   "private": true,
   "name": "@fast-check/monorepo",
   "description": "Test making sure fast-check expose the right typings",
-  "packageManager": "yarn@4.0.2",
+  "type": "module",
+  "packageManager": "yarn@4.6.0",
   "workspaces": [
     ".github/actions/*",
     "examples",
@@ -20,22 +21,23 @@
     "lint": "eslint . --fix",
     "lint:check": "eslint .",
     "publint:all": "yarn workspaces foreach --all -pvi --no-private exec publint --strict",
-    "version:bump": "yarn version check --interactive",
+    "bump": "changeset",
     "pack:all": "yarn workspaces foreach --all -pvi --no-private pack --out package.tgz",
-    "unpack:all": "yarn workspaces foreach --all -pvi --no-private exec tar -xvf package.tgz --strip-components=1 --exclude='package/package.json'"
+    "unpack:all": "yarn workspaces foreach --all -pvi --no-private exec tar -xf package.tgz --strip-components=1 --exclude='package/package.json'"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.27.12",
+    "@eslint/js": "^9.19.0",
     "@fast-check/packaged": "*",
-    "@typescript-eslint/eslint-plugin": "^6.13.2",
-    "@typescript-eslint/parser": "^6.13.2",
+    "@typescript-eslint/utils": "^8.22.0",
     "all-contributors-cli": "^6.26.1",
-    "eslint": "^8.55.0",
-    "eslint-config-prettier": "^9.1.0",
-    "prettier": "3.1.0",
-    "publint": "^0.2.6",
-    "typescript": "~5.3.2"
-  },
-  "resolutions": {
-    "react@^17.0.2": "patch:react@npm%3A17.0.2#./.yarn/patches/react-npm-17.0.2-99ba37d931.patch"
+    "eslint": "^9.19.0",
+    "eslint-config-prettier": "^10.0.1",
+    "globals": "^15.14.0",
+    "pkg-pr-new": "^0.0.39",
+    "prettier": "3.4.2",
+    "publint": "^0.3.2",
+    "typescript": "~5.7.3",
+    "typescript-eslint": "^8.22.0"
   }
 }

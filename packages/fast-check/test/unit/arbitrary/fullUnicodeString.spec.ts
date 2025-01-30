@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
 import { fullUnicodeString } from '../../../src/arbitrary/fullUnicodeString';
 
@@ -92,7 +93,7 @@ describe('fullUnicodeString (integration)', () => {
   it.each`
     rawValue
     ${'Hey \u{1f431}!'}
-    ${'\u{1f431}'.repeat(50) /* longer than default maxGeneratedLength but ok for shrink */}
+    ${`Yo ${'\u{1f431}'.repeat(50)}!` /* longer than default maxGeneratedLength but ok for shrink */}
   `('should be able to shrink $rawValue with fc.fullUnicodeString()', ({ rawValue }) => {
     // Arrange
     const arb = fullUnicodeString();

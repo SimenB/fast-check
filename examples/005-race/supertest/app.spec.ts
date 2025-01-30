@@ -1,10 +1,13 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { MockedFunction } from 'vitest';
 import fc from 'fast-check';
 import request from 'supertest';
-
+import type { User } from './src/db';
 import { app, dropDeactivatedInternal } from './src/app';
-//import { app, dropDeactivatedInternal } from './src/appBug';
+// import { app, dropDeactivatedInternal } from'./src/appBug';
 import * as DbMock from './src/db';
-import { User } from './src/db';
+
+vi.mock('./src/db');
 
 if (!fc.readConfigureGlobal()) {
   // Global config of Jest has been ignored, we will have a timeout after 5000ms
@@ -12,13 +15,19 @@ if (!fc.readConfigureGlobal()) {
   fc.configureGlobal({ interruptAfterTimeLimit: 4000 });
 }
 
+const beforeEachHook = () => {
+  vi.resetAllMocks();
+};
+beforeEach(beforeEachHook);
+fc.configureGlobal({ ...fc.readConfigureGlobal(), beforeEach: beforeEachHook });
+
 describe('app', () => {
   it('should be able to call multiple /drop-deactivated at the same time', async () => {
     await fc.assert(
       fc.asyncProperty(
         fc.uniqueArray(
           fc.record<User>({
-            id: fc.uuidV(4),
+            id: fc.uuid({ version: 4 }),
             name: fc.string(),
             deactivated: fc.boolean(),
           }),
@@ -38,8 +47,8 @@ describe('app', () => {
         async (allUsers, num, s) => {
           // Arrange
           let knownUsers = allUsers;
-          const getAllUsers = jest.spyOn(DbMock, 'getAllUsers');
-          const removeUsers = jest.spyOn(DbMock, 'removeUsers');
+          const getAllUsers = DbMock.getAllUsers as MockedFunction<typeof DbMock.getAllUsers>;
+          const removeUsers = DbMock.removeUsers as MockedFunction<typeof DbMock.removeUsers>;
           getAllUsers.mockImplementation(
             s.scheduleFunction(async function getAllUsers() {
               return knownUsers;
@@ -75,7 +84,7 @@ describe('app', () => {
       fc.asyncProperty(
         fc.uniqueArray(
           fc.record<User>({
-            id: fc.uuidV(4),
+            id: fc.uuid({ version: 4 }),
             name: fc.string(),
             deactivated: fc.boolean(),
           }),
@@ -86,8 +95,8 @@ describe('app', () => {
         async (allUsers, num, s) => {
           // Arrange
           let knownUsers = allUsers;
-          const getAllUsers = jest.spyOn(DbMock, 'getAllUsers');
-          const removeUsers = jest.spyOn(DbMock, 'removeUsers');
+          const getAllUsers = DbMock.getAllUsers as MockedFunction<typeof DbMock.getAllUsers>;
+          const removeUsers = DbMock.removeUsers as MockedFunction<typeof DbMock.removeUsers>;
           getAllUsers.mockImplementation(
             s.scheduleFunction(async function getAllUsers() {
               return knownUsers;

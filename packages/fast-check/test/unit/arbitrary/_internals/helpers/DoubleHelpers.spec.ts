@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
 
 import { float64raw, isStrictlySmaller } from '../../__test-helpers__/FloatingPointHelpers';
@@ -73,13 +74,6 @@ describe('doubleToIndex', () => {
       }),
     );
   });
-
-  if (typeof BigInt === 'undefined') {
-    it('no test', () => {
-      expect(true).toBe(true);
-    });
-    return;
-  } // Following tests require BigInt to be launched
 
   it('should properly compute indexes', () => {
     expect(doubleToIndex(0)).toEqual(toIndex('0'));
@@ -192,13 +186,6 @@ describe('indexToDouble', () => {
         expect(indexToDouble(doubleToIndex(f64))).toBe(f64);
       }),
     ));
-
-  if (typeof BigInt === 'undefined') {
-    it('no test', () => {
-      expect(true).toBe(true);
-    });
-    return;
-  } // Following tests require BigInt to be launched
 
   it('should properly find doubles corresponding to well-known values', () => {
     expect(indexToDouble(toIndex('-9218868437227405313'))).toBe(Number.NEGATIVE_INFINITY);

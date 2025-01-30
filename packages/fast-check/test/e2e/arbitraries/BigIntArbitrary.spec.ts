@@ -1,15 +1,10 @@
+import { describe, it, expect } from 'vitest';
 import * as fc from '../../../src/fast-check';
 import { seed } from '../seed';
 
 declare function BigInt(n: number | bigint | string): bigint;
 
 describe(`BigIntArbitrary (seed: ${seed})`, () => {
-  if (typeof BigInt === 'undefined') {
-    it('no test', () => {
-      expect(true).toBe(true);
-    });
-    return;
-  }
   describe('bitIntN', () => {
     it('Should be able to generate bigint above the highest positive double', () => {
       const out = fc.check(
@@ -66,7 +61,7 @@ describe(`BigIntArbitrary (seed: ${seed})`, () => {
     it('Should not be able to generate small bigint if not biased (very improbable)', () => {
       const out = fc.check(
         fc.property(
-          fc.bigIntN(1030).noBias(),
+          fc.noBias(fc.bigIntN(1030)),
           (v) => Number(v) < Number.MIN_SAFE_INTEGER || Number(v) > Number.MAX_SAFE_INTEGER,
         ),
         { seed: seed },
@@ -76,7 +71,7 @@ describe(`BigIntArbitrary (seed: ${seed})`, () => {
     it('Should not be able to generate close to min or max bigints if not biased (very improbable)', () => {
       const out = fc.check(
         fc.property(
-          fc.bigIntN(1030).noBias(),
+          fc.noBias(fc.bigIntN(1030)),
           (v) =>
             v >= (BigInt(-1) << BigInt(1030 - 1)) + BigInt(500) && v <= (BigInt(1) << BigInt(1030 - 1)) - BigInt(500),
         ),

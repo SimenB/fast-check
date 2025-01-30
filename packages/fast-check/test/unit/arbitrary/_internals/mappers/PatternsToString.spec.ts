@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
 import { patternsToStringUnmapperFor } from '../../../../../src/arbitrary/_internals/mappers/PatternsToString';
 import { fakeArbitrary } from '../../__test-helpers__/ArbitraryHelpers';
@@ -31,7 +32,7 @@ describe('patternsToStringUnmapperFor', () => {
       // Arrange
       const sourceChunksSet = new Set(sourceChunks);
       const { instance, canShrinkWithoutContext } = fakeArbitrary<string>();
-      canShrinkWithoutContext.mockImplementation((value) => sourceChunksSet.has(value as string));
+      canShrinkWithoutContext.mockImplementation((value): value is string => sourceChunksSet.has(value as string));
 
       // Act
       const unmapper = patternsToStringUnmapperFor(instance, constraints);
@@ -51,7 +52,7 @@ describe('patternsToStringUnmapperFor', () => {
     // Arrange
     const sourceChunksSet = new Set(sourceChunks);
     const { instance, canShrinkWithoutContext } = fakeArbitrary<string>();
-    canShrinkWithoutContext.mockImplementation((value) => sourceChunksSet.has(value as string));
+    canShrinkWithoutContext.mockImplementation((value): value is string => sourceChunksSet.has(value as string));
 
     // Act / Assert
     const unmapper = patternsToStringUnmapperFor(instance, constraints);
@@ -69,7 +70,7 @@ describe('patternsToStringUnmapperFor', () => {
           // Arrange
           const sourceChunksSet = new Set(sourceChunks);
           const { instance, canShrinkWithoutContext } = fakeArbitrary<string>();
-          canShrinkWithoutContext.mockImplementation((value) => sourceChunksSet.has(value as string));
+          canShrinkWithoutContext.mockImplementation((value): value is string => sourceChunksSet.has(value as string));
           const source = sourceMods.map((mod) => sourceChunks[mod % sourceChunks.length]).join('');
 
           // Act
@@ -98,7 +99,7 @@ describe('patternsToStringUnmapperFor', () => {
           // Arrange
           const sourceChunksSet = new Set(sourceChunks);
           const { instance, canShrinkWithoutContext } = fakeArbitrary<string>();
-          canShrinkWithoutContext.mockImplementation((value) => sourceChunksSet.has(value as string));
+          canShrinkWithoutContext.mockImplementation((value): value is string => sourceChunksSet.has(value as string));
           const source = sourceMods.map((mod) => sourceChunks[mod % sourceChunks.length]).join('');
           const constraints = {
             minLength: Math.max(0, sourceMods.length - constraintsMinOffset),

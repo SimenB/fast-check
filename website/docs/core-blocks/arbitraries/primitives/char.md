@@ -6,31 +6,13 @@ slug: /core-blocks/arbitraries/primitives/char/
 
 Generate single-character values.
 
-## hexa
-
-One lowercase hexadecimal character — ie.: _one character in `0123456789abcdef`_.
-
-**Signatures:**
-
-- `fc.hexa()`
-
-**Usages:**
-
-```js
-fc.hexa();
-// Examples of generated values: "5", "f", "7", "d", "9"…
-```
-
-Resources: [API reference](https://fast-check.dev/api-reference/functions/hexa.html).  
-Available since 0.0.1.
-
 ## base64
 
 One base64 character — _ie.: one character in `A-Z`, `a-z`, `0-9`, `+` or `/`_.
 
 **Signatures:**
 
-- `fc.base64()`
+- `fc.base64()` — _deprecated since v3.22.0 (more details at [#5233](https://github.com/dubzzz/fast-check/pull/5233))_
 
 **Usages:**
 
@@ -48,7 +30,7 @@ One printable character — _ie.: one character between `0x20` (included) and `0
 
 **Signatures:**
 
-- `fc.char()`
+- `fc.char()` — _deprecated since v3.22.0, prefer [string](https://fast-check.dev/docs/core-blocks/arbitraries/primitives/string/#string-1) ([#5233](https://github.com/dubzzz/fast-check/pull/5233))_
 
 **Usages:**
 
@@ -60,24 +42,6 @@ fc.char();
 Resources: [API reference](https://fast-check.dev/api-reference/functions/char.html).  
 Available since 0.0.1.
 
-## ascii
-
-One ascii character — _ie.: one character between `0x00` (included) and `0x7f` (included)_.
-
-**Signatures:**
-
-- `fc.ascii()`
-
-**Usages:**
-
-```js
-fc.ascii();
-// Examples of generated values: "4", "l", "S", ";", "\u0019"…
-```
-
-Resources: [API reference](https://fast-check.dev/api-reference/functions/ascii.html).  
-Available since 0.0.1.
-
 ## unicode
 
 One unicode character from BMP-plan — _ie.: one character between `0x0000` (included) and `0xffff` (included) but excluding surrogate pairs (between `0xd800` and `0xdfff`)_.
@@ -86,7 +50,7 @@ Generate any character of UCS-2 which is a subset of UTF-16 (restricted to BMP p
 
 **Signatures:**
 
-- `fc.unicode()`
+- `fc.unicode()` — _deprecated since v3.22.0, prefer [string](https://fast-check.dev/docs/core-blocks/arbitraries/primitives/string/#string-1) (more details at [#5233](https://github.com/dubzzz/fast-check/pull/5233))_
 
 **Usages:**
 
@@ -106,7 +70,7 @@ Generate any 16 bits character. Be aware the values within `0xd800` and `0xdfff`
 
 **Signatures:**
 
-- `fc.char16bits()`
+- `fc.char16bits()` — _deprecated since v3.22.0 (more details at [#5233](https://github.com/dubzzz/fast-check/pull/5233))_
 
 **Usages:**
 
@@ -126,7 +90,7 @@ Its length can be greater than one as it potentially contains multiple UTF-16 ch
 
 **Signatures:**
 
-- `fc.fullUnicode()`
+- `fc.fullUnicode()` — _deprecated since v3.22.0, prefer [string](https://fast-check.dev/docs/core-blocks/arbitraries/primitives/string/#string-1) (more details at [#5233](https://github.com/dubzzz/fast-check/pull/5233))_
 
 **Usages:**
 

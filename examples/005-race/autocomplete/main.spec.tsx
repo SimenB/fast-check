@@ -1,3 +1,7 @@
+/**
+ * @vitest-environment happy-dom
+ */
+import { describe, it, vi } from 'vitest';
 import fc from 'fast-check';
 import * as React from 'react';
 
@@ -52,7 +56,7 @@ describe('AutocompleteField', () => {
           }
         })
         .beforeEach(async () => {
-          jest.resetAllMocks();
+          vi.resetAllMocks();
           await cleanup();
         }),
     );
@@ -101,7 +105,7 @@ describe('AutocompleteField', () => {
           }
         })
         .beforeEach(async () => {
-          jest.resetAllMocks();
+          vi.resetAllMocks();
           await cleanup();
         }),
     );

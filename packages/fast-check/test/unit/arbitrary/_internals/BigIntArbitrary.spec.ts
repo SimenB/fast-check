@@ -1,3 +1,4 @@
+import { describe, it, expect, vi } from 'vitest';
 import * as fc from 'fast-check';
 import { BigIntArbitrary } from '../../../../src/arbitrary/_internals/BigIntArbitrary';
 import { Value } from '../../../../src/check/arbitrary/definition/Value';
@@ -14,21 +15,10 @@ import { Stream } from '../../../../src/stream/Stream';
 
 import * as BiasNumericRangeMock from '../../../../src/arbitrary/_internals/helpers/BiasNumericRange';
 import * as ShrinkBigIntMock from '../../../../src/arbitrary/_internals/helpers/ShrinkBigInt';
-
-function beforeEachHook() {
-  jest.resetModules();
-  jest.restoreAllMocks();
-  fc.configureGlobal({ beforeEach: beforeEachHook });
-}
-beforeEach(beforeEachHook);
+import { declareCleaningHooksForSpies } from '../__test-helpers__/SpyCleaner';
 
 describe('BigIntArbitrary', () => {
-  if (typeof BigInt === 'undefined') {
-    it('no test', () => {
-      expect(true).toBe(true);
-    });
-    return;
-  }
+  declareCleaningHooksForSpies();
 
   describe('generate', () => {
     it('should never bias and generate the full range when biasFactor is not specified', () =>
@@ -96,10 +86,7 @@ describe('BigIntArbitrary', () => {
               nextInt.mockImplementationOnce((min, max) => min + (mod % (max - min + 1)));
             }
             nextBigInt.mockReturnValueOnce(mid); // Remark: this value will most of the time be outside of requested range
-            const biasNumericRange = jest.spyOn(
-              BiasNumericRangeMock,
-              'biasNumericRange',
-            ) as unknown as jest.SpyInstance<{ min: bigint; max: bigint }[], [bigint, bigint, () => bigint]>;
+            const biasNumericRange = vi.spyOn(BiasNumericRangeMock, 'biasNumericRange');
             biasNumericRange.mockReturnValueOnce(ranges);
 
             // Act
@@ -201,7 +188,7 @@ describe('BigIntArbitrary', () => {
           // Arrange
           const [min, mid, max] = [a, b, c].sort((v1, v2) => Number(v1 - v2));
           const expectedShrinks = Stream.nil<Value<bigint>>();
-          const shrinkBigInt = jest.spyOn(ShrinkBigIntMock, 'shrinkBigInt');
+          const shrinkBigInt = vi.spyOn(ShrinkBigIntMock, 'shrinkBigInt');
           shrinkBigInt.mockReturnValueOnce(expectedShrinks);
 
           // Act
@@ -218,13 +205,6 @@ describe('BigIntArbitrary', () => {
 });
 
 describe('BigIntArbitrary (integration)', () => {
-  if (typeof BigInt === 'undefined') {
-    it('no test', () => {
-      expect(true).toBe(true);
-    });
-    return;
-  }
-
   type Extra = { min: bigint; max: bigint };
   const extraParameters: fc.Arbitrary<Extra> = fc
     .tuple(fc.bigInt(), fc.bigInt())

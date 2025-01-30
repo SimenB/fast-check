@@ -61,11 +61,22 @@ const property = propertyFor(new URL(import.meta.url), { isolationLevel: 'predic
 // - "predicate": One worker per run of the predicate
 ```
 
+By default, workers will receive the generated values from their parent thread. In some cases, such sending is made impossible as the generated values include non-serializable pieces. In such cases, you can opt-in to generate the values directly within the workers by using:
+
+```js
+const property = propertyFor(new URL(import.meta.url), { randomSource: 'worker' });
+// Other values:
+// - "main-thread": The main thread will be responsible to generate the random values and send them to the worker thread. It unfortunately cannot send any value that cannot be serialized between threads. (default)
+// - "worker": The worker is responsible to generate its own values based on the instructions provided by the main thread. Switching to a worker mode allows to support non-serializable values, unfortunately it drops all shrinking. capabilities.
+```
+
 ## Minimal requirements
 
-- Node ≥14.18.0<sup>(1)</sup><sup>(2)</sup>
+- Node ≥14.18.0<sup>(1)</sup><sup>(2)</sup><sup>(3)</sup>
 - TypeScript ≥4.1 (optional)
 
 _(1): `worker_threads` alone would only require Node ≥10.5.0, but our usage of `require(node:*)` forces us to request at least Node ≥14.18.0_
 
 _(2): this package targets ES2020 specification which is quite well supported (more than 94%) by any Node ≥14.5.0_
+
+_(3): this package requires a version of node able to understand `package.json#exports`, supported by any Node ≥12.17.0_

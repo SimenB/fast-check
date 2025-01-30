@@ -1,3 +1,4 @@
+import { describe, it, expect, vi } from 'vitest';
 import * as fc from 'fast-check';
 
 import type { DoubleConstraints } from '../../../src/arbitrary/double';
@@ -14,6 +15,7 @@ import { doubleToIndex, indexToDouble } from '../../../src/arbitrary/_internals/
 
 import { fakeArbitrary, fakeArbitraryStaticValue } from './__test-helpers__/ArbitraryHelpers';
 import { fakeRandom } from './__test-helpers__/RandomHelpers';
+import { declareCleaningHooksForSpies } from './__test-helpers__/SpyCleaner';
 
 import {
   assertProduceCorrectValues,
@@ -25,20 +27,15 @@ import {
 
 import * as ArrayInt64ArbitraryMock from '../../../src/arbitrary/_internals/ArrayInt64Arbitrary';
 
-function beforeEachHook() {
-  jest.resetModules();
-  jest.restoreAllMocks();
-}
-beforeEach(beforeEachHook);
-fc.configureGlobal({
-  ...fc.readConfigureGlobal(),
-  beforeEach: beforeEachHook,
-});
-
 describe('double', () => {
+  declareCleaningHooksForSpies();
+
   it('should accept any valid range of floating point numbers (including infinity)', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { noInteger, ...withoutNoIntegerRecordConstraints } = defaultDoubleRecordConstraints;
+
     fc.assert(
-      fc.property(doubleConstraints(), (ct) => {
+      fc.property(doubleConstraints(withoutNoIntegerRecordConstraints), (ct) => {
         // Arrange
         spyArrayInt64();
 
@@ -55,7 +52,7 @@ describe('double', () => {
     fc.assert(
       fc.property(
         float64raw(),
-        fc.record({ noDefaultInfinity: fc.boolean(), noNaN: fc.boolean() }, { withDeletedKeys: true }),
+        fc.record({ noDefaultInfinity: fc.boolean(), noNaN: fc.boolean() }, { requiredKeys: [] }),
         (f, otherCt) => {
           // Arrange
           fc.pre(!Number.isNaN(f));
@@ -75,7 +72,7 @@ describe('double', () => {
     fc.assert(
       fc.property(
         float64raw(),
-        fc.record({ noDefaultInfinity: fc.boolean(), noNaN: fc.boolean() }, { withDeletedKeys: true }),
+        fc.record({ noDefaultInfinity: fc.boolean(), noNaN: fc.boolean() }, { requiredKeys: [] }),
         fc.constantFrom('min', 'max', 'both'),
         (f, otherCt, exclusiveMode) => {
           // Arrange
@@ -143,44 +140,47 @@ describe('double', () => {
     expect(arrayInt64).not.toHaveBeenCalled();
   });
 
-  if (typeof BigInt !== 'undefined') {
-    it('should properly convert integer value for index between min and max into its associated float value', () => {
-      const withoutExcludedConstraints = {
-        ...defaultDoubleRecordConstraints,
-        minExcluded: fc.constant(false),
-        maxExcluded: fc.constant(false),
-      };
+  it('should properly convert integer value for index between min and max into its associated float value', () => {
+    const withoutExcludedConstraints = {
+      ...defaultDoubleRecordConstraints,
+      minExcluded: fc.constant(false),
+      maxExcluded: fc.constant(false),
+      noInteger: fc.constant(false),
+    };
 
-      fc.assert(
-        fc.property(
-          fc.option(doubleConstraints(withoutExcludedConstraints), { nil: undefined }),
-          fc.bigUintN(64),
-          fc.option(fc.integer({ min: 2 }), { nil: undefined }),
-          (ct, mod, biasFactor) => {
-            // Arrange
-            const { instance: mrng } = fakeRandom();
-            const { min, max } = minMaxForConstraints(ct || {});
-            const minIndex = doubleToIndex(min);
-            const maxIndex = doubleToIndex(max);
-            const arbitraryGeneratedIndex = toIndex(
-              (mod % (toBigInt(maxIndex) - toBigInt(minIndex) + BigInt(1))) + toBigInt(minIndex),
-            );
-            spyArrayInt64WithValue(() => arbitraryGeneratedIndex);
+    fc.assert(
+      fc.property(
+        fc.option(doubleConstraints(withoutExcludedConstraints), { nil: undefined }),
+        fc.bigUintN(64),
+        fc.option(fc.integer({ min: 2 }), { nil: undefined }),
+        (ct, mod, biasFactor) => {
+          // Arrange
+          const { instance: mrng } = fakeRandom();
+          const { min, max } = minMaxForConstraints(ct || {});
+          const minIndex = doubleToIndex(min);
+          const maxIndex = doubleToIndex(max);
+          const arbitraryGeneratedIndex = toIndex(
+            (mod % (toBigInt(maxIndex) - toBigInt(minIndex) + BigInt(1))) + toBigInt(minIndex),
+          );
+          spyArrayInt64WithValue(() => arbitraryGeneratedIndex);
 
-            // Act
-            const arb = double(ct);
-            const { value_: f } = arb.generate(mrng, biasFactor);
+          // Act
+          const arb = double(ct);
+          const { value_: f } = arb.generate(mrng, biasFactor);
 
-            // Assert
-            expect(f).toBe(indexToDouble(arbitraryGeneratedIndex));
-          },
-        ),
-      );
-    });
-  }
+          // Assert
+          expect(f).toBe(indexToDouble(arbitraryGeneratedIndex));
+        },
+      ),
+    );
+  });
 
   describe('with NaN', () => {
-    const withNaNRecordConstraints = { ...defaultDoubleRecordConstraints, noNaN: fc.constant(false) };
+    const withNaNRecordConstraints = {
+      ...defaultDoubleRecordConstraints,
+      noNaN: fc.constant(false),
+      noInteger: fc.constant(false),
+    };
 
     it('should ask for a range with one extra value (far from zero)', () => {
       fc.assert(
@@ -244,7 +244,7 @@ describe('double', () => {
 
   describe('without NaN', () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { noNaN, ...noNaNRecordConstraints } = defaultDoubleRecordConstraints;
+    const { noNaN, noInteger, ...noNaNRecordConstraints } = defaultDoubleRecordConstraints;
 
     it('should ask integers between the indexes corresponding to min and max', () => {
       fc.assert(
@@ -280,19 +280,32 @@ describe('double (integration)', () => {
     if (extra === undefined) {
       return; // no other constraints
     }
+    if (extra.noInteger) {
+      expect(v).toSatisfy((v) => !Number.isInteger(v)); // should not produce integer values
+    }
     if (extra.noNaN) {
       expect(v).not.toBe(Number.NaN); // should not produce NaN if explicitely asked not too
     }
     if (extra.min !== undefined && !Number.isNaN(v)) {
       if (extra.minExcluded) {
-        expect(v).toBeGreaterThan(extra.min); // should always be strictly greater than min when specified
+        if (Object.is(extra.min, -0)) {
+          expect(v).not.toBe(-0);
+          expect(v).toBeGreaterThanOrEqual(extra.min);
+        } else {
+          expect(v).toBeGreaterThan(extra.min); // should always be strictly greater than min when specified
+        }
       } else {
         expect(v).toBeGreaterThanOrEqual(extra.min); // should always be greater than min when specified
       }
     }
     if (extra.max !== undefined && !Number.isNaN(v)) {
       if (extra.maxExcluded) {
-        expect(v).toBeLessThan(extra.max); // should always be strictly smaller than max when specified
+        if (Object.is(extra.max, +0)) {
+          expect(v).not.toBe(+0);
+          expect(v).toBeLessThanOrEqual(extra.max);
+        } else {
+          expect(v).toBeLessThan(extra.max); // should always be strictly smaller than max when specified
+        }
       } else {
         expect(v).toBeLessThanOrEqual(extra.max); // should always be smaller than max when specified
       }
@@ -367,7 +380,7 @@ function minMaxForConstraints(ct: DoubleConstraints) {
 function spyArrayInt64() {
   const { instance, map } = fakeArbitrary<ArrayInt64>();
   const { instance: mappedInstance } = fakeArbitrary();
-  const arrayInt64 = jest.spyOn(ArrayInt64ArbitraryMock, 'arrayInt64');
+  const arrayInt64 = vi.spyOn(ArrayInt64ArbitraryMock, 'arrayInt64');
   arrayInt64.mockReturnValue(instance);
   map.mockReturnValue(mappedInstance);
   return arrayInt64;
@@ -375,7 +388,7 @@ function spyArrayInt64() {
 
 function spyArrayInt64WithValue(value: () => ArrayInt64) {
   const { instance } = fakeArbitraryStaticValue<ArrayInt64>(value);
-  const integer = jest.spyOn(ArrayInt64ArbitraryMock, 'arrayInt64');
+  const integer = vi.spyOn(ArrayInt64ArbitraryMock, 'arrayInt64');
   integer.mockReturnValue(instance);
   return integer;
 }

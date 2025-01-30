@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
 
 import type { ArrayInt64 } from '../../../../../src/arbitrary/_internals/helpers/ArrayInt64';
@@ -38,13 +39,6 @@ function expectValidZeroIfAny(a: ArrayInt64): void {
 }
 
 describe('ArrayInt64', () => {
-  if (typeof BigInt === 'undefined') {
-    it('no test', () => {
-      expect(true).toBe(true);
-    });
-    return;
-  }
-
   const MaxArrayIntValue = (BigInt(1) << BigInt(64)) - BigInt(1);
 
   describe('isEqual64', () => {

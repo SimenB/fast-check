@@ -1,3 +1,4 @@
+import { describe, it, expect, vi } from 'vitest';
 import * as fc from 'fast-check';
 import { unicode } from '../../../src/arbitrary/unicode';
 
@@ -11,15 +12,11 @@ import {
   assertShrinkProducesStrictlySmallerValue,
   assertProduceSameValueGivenSameSeed,
 } from './__test-helpers__/ArbitraryAssertions';
-
-function beforeEachHook() {
-  jest.resetModules();
-  jest.restoreAllMocks();
-  fc.configureGlobal({ beforeEach: beforeEachHook });
-}
-beforeEach(beforeEachHook);
+import { declareCleaningHooksForSpies } from './__test-helpers__/SpyCleaner';
 
 describe('unicode', () => {
+  declareCleaningHooksForSpies();
+
   it('should be able to unmap any mapped value', () => {
     // Arrange
     const { min, max, mapToCode, unmapFromCode } = extractArgumentsForBuildCharacter(unicode);
@@ -85,7 +82,7 @@ describe('unicode (integration)', () => {
 
 function extractArgumentsForBuildCharacter(build: () => void) {
   const { instance } = fakeArbitrary();
-  const buildCharacterArbitrary = jest.spyOn(CharacterArbitraryBuilderMock, 'buildCharacterArbitrary');
+  const buildCharacterArbitrary = vi.spyOn(CharacterArbitraryBuilderMock, 'buildCharacterArbitrary');
   buildCharacterArbitrary.mockImplementation(() => instance);
 
   build();
